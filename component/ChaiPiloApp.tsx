@@ -12,46 +12,55 @@ interface Entry {
 }
 
 export default function ChaiPiloApp() {
+  const [date, setDate] = useState<string>("");
+  const [doodhLaya, setDoodhLaya] = useState<string>("");
+  const [bartanDhoya, setBartanDhoya] = useState<string>("");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [showEntryForm, setShowEntryForm] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true); // Add loading state
   const router = useRouter();
 
   useEffect(() => {
+    const today = new Date().toLocaleDateString("en-GB");
+    setDate(today);
     const token = localStorage.getItem("token");
     if (token) {
-      setIsAuthenticated(true);
-      fetchEntries(token);
+      setIsAuthenticated(true); // User is authenticated
     } else {
-      setIsAuthenticated(false);
-      router.push("/login");
+      setIsAuthenticated(false); // User is not authenticated
+      router.push("/login"); // Redirect to login page
     }
+    fetchEntries();
   }, [router]);
 
-  const fetchEntries = async (token: string) => {
-    try {
-      const response = await axios.get<Entry[]>(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/entries`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setEntries(response.data);
-    } catch (error) {
-      console.error("Failed to fetch entries:", error);
-    } finally {
-      setLoading(false); // Set loading to false once data is fetched
-    }
+  const fetchEntries = async () => {
+    const response = await axios.get<Entry[]>(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/entries`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    setEntries(response.data);
+  };
+
+  const handleSubmit = async (type: "doodhLaya" | "bartanDhoya") => {
+    const payload: Partial<Entry> = { date };
+    if (type === "doodhLaya") payload.doodh_laya = doodhLaya;
+    if (type === "bartanDhoya") payload.bartan_dhoya = bartanDhoya;
+
+    await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/entries`, payload, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    fetchEntries();
+    setShowEntryForm(false);
   };
 
   return (
     <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md space-y-4 ">
-      {loading ? (
-        <p>Loading...</p> // Show loading state while fetching
-      ) : !showEntryForm && isAuthenticated ? (
+      {!showEntryForm && isAuthenticated ? (
         <>
           <div className="flex justify-between">
             <div className="flex items-center">
@@ -70,14 +79,12 @@ export default function ChaiPiloApp() {
             </Link>
           </div>
           <hr />
-          <div>
-            <Link
-              href="/todays-entry"
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Today's Entry
-            </Link>
-          </div>
+          <button
+            onClick={() => setShowEntryForm(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Today's Entry
+          </button>
           <table className="w-full border-collapse border border-gray-300 mt-4">
             <thead>
               <tr>
@@ -98,7 +105,9 @@ export default function ChaiPiloApp() {
           </table>
         </>
       ) : (
-        <p>Please log in to access the app.</p>
+        <>
+          <p>Please log in to access the app.</p>
+        </>
       )}
     </div>
   );
