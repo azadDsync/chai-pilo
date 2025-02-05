@@ -13,7 +13,6 @@ interface Entry {
 
 export default function ChaiPiloApp() {
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [showEntryForm, setShowEntryForm] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true); // Add loading state
   const router = useRouter();
@@ -51,7 +50,9 @@ export default function ChaiPiloApp() {
     <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md space-y-4 ">
       {loading ? (
         <p>Loading...</p> // Show loading state while fetching
-      ) : !showEntryForm && isAuthenticated ? (
+      ) : !isAuthenticated ? (
+        <p>Please log in to access the app.</p>
+      ) : (
         <>
           <div className="flex justify-between">
             <div className="flex items-center">
@@ -75,7 +76,7 @@ export default function ChaiPiloApp() {
               href="/todays-entry"
               className="bg-blue-500 text-white px-4 py-2 rounded"
             >
-              Today's Entry
+              Today&apos;s Entry
             </Link>
           </div>
           <table className="w-full border-collapse border border-gray-300 mt-4">
@@ -97,8 +98,6 @@ export default function ChaiPiloApp() {
             </tbody>
           </table>
         </>
-      ) : (
-        <p>Please log in to access the app.</p>
       )}
     </div>
   );

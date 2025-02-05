@@ -55,7 +55,7 @@ export default function TodaysEntry() {
           setSuccessMessage(null);
         }, 3000);
       } catch (error) {
-        // console.error("Error posting data", error);
+        console.error("Error posting data", error);
         setSuccessMessage("Net thik krr apna");
       }
     } else {

@@ -27,12 +27,17 @@ export default function AuthPage() {
 
       localStorage.setItem("token", response.data.token);
       router.push("/");
-    } catch (error) {
-      setError(
-        isLogin
-          ? "Invalid credentials, please try again."
-          : "Error during signup, please try again."
-      );
+    } catch (error: unknown) {
+      // Narrow down the error type and show the appropriate error message
+      if (axios.isAxiosError(error)) {
+        setError(
+          isLogin
+            ? "Invalid credentials, please try again."
+            : "Error during signup, please try again."
+        );
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -42,6 +47,7 @@ export default function AuthPage() {
     <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md space-y-4">
       <h2 className="text-2xl font-bold">{isLogin ? "Login" : "Sign Up"}</h2>
 
+      {/* Show the error message */}
       {error && <div className="text-red-500">{error}</div>}
 
       <div className="space-y-4">

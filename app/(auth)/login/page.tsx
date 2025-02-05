@@ -1,8 +1,7 @@
-"use client";
-
+"use client"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import axios, { AxiosError } from "axios"; // Keep AxiosError import
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,8 +27,22 @@ export default function AuthPage() {
 
       localStorage.setItem("token", response.data.token);
       router.push("/");
-    } catch (error) {
-      setError("Invalid credentials or server error");
+    } catch (error: unknown) { // Specify the type of error as 'unknown'
+      if (axios.isAxiosError(error)) {
+        // Now we can access `AxiosError` properties safely
+        const axiosError = error as AxiosError;
+
+        // Check if the error response and message exist
+        if (axiosError.response && axiosError.response.data) {
+          // If you know the shape of the error response, you can handle it as follows:
+          const errorMessage = (axiosError.response.data as { message?: string }).message;
+          setError(errorMessage || "Invalid credentials or server error");
+        } else {
+          setError("An unexpected error occurred");
+        }
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
